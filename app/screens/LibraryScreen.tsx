@@ -6,19 +6,15 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Alert,
-  Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useLibraryStore } from '../store/useLibraryStore'
 import GameCard from '../components/GameCard'
-import { useColors, getTabBarStyle } from '../theme'
-import type { Game, GameStatus, LibraryStackParamList } from '../types'
+import { useColors } from '../theme'
 import { Ionicons } from '@expo/vector-icons'
-import { exportLibrary, pickAndParseLibrary } from '../services/libraryIO'
-import BackupModal from '../components/BackupModal'
+import type { Game, GameStatus, LibraryStackParamList } from '../types'
 
 type NavProp = NativeStackNavigationProp<LibraryStackParamList, 'LibraryHome'>
 
@@ -34,49 +30,6 @@ export default function LibraryScreen() {
   const navigation = useNavigation<NavProp>()
   const colors = useColors()
   const games = useLibraryStore((s) => s.games)
-  const mergeGames = useLibraryStore((s) => s.mergeGames)
-
-  async function handleExport() {
-    if (games.length === 0) {
-      Alert.alert('Nothing to export', 'Add some games to your library first.')
-      return
-    }
-    try {
-      await exportLibrary(games)
-      if (Platform.OS === 'android') Alert.alert('Exported', 'Library saved successfully.')
-    } catch (e: unknown) {
-      if (e instanceof Error && e.message === 'CANCELLED') return
-      Alert.alert('Export failed', e instanceof Error ? e.message : String(e))
-    }
-  }
-
-  async function handleImport() {
-    try {
-      const imported = await pickAndParseLibrary()
-      const added = mergeGames(imported)
-      const skipped = imported.length - added
-      const msg =
-        added === 0
-          ? 'All games already exist in your library.'
-          : `Added ${added} game${added !== 1 ? 's' : ''}${skipped > 0 ? `, skipped ${skipped} duplicate${skipped !== 1 ? 's' : ''}` : ''}.`
-      Alert.alert('Import complete', msg)
-    } catch (e: unknown) {
-      if (e instanceof Error && e.message === 'CANCELLED') return
-      Alert.alert('Import failed', e instanceof Error ? e.message : 'Could not read the file.')
-    }
-  }
-
-  const [backupVisible, setBackupVisible] = useState(false)
-
-  function openBackup() {
-    navigation.getParent()?.setOptions({ tabBarStyle: { display: 'none' } })
-    setBackupVisible(true)
-  }
-
-  function closeBackup() {
-    navigation.getParent()?.setOptions({ tabBarStyle: getTabBarStyle(colors) })
-    setBackupVisible(false)
-  }
 
   const [activeFilter, setActiveFilter] = useState<'all' | GameStatus>('all')
   const [search, setSearch] = useState('')
@@ -106,24 +59,16 @@ export default function LibraryScreen() {
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.heading, { color: colors.text }]}>My Shelf</Text>
         <TouchableOpacity
-          onPress={openBackup}
-          style={[styles.backupBtn, { backgroundColor: colors.accentLight }]}
+          onPress={() => navigation.navigate('Settings')}
+          style={[styles.settingsBtn, { backgroundColor: colors.accentLight }]}
           activeOpacity={0.7}
         >
-          <Ionicons name="archive-outline" size={22} color={colors.accent} />
+          <Ionicons name="settings-outline" size={20} color={colors.accent} />
         </TouchableOpacity>
       </View>
-
-      <BackupModal
-        visible={backupVisible}
-        onClose={closeBackup}
-        onExport={handleExport}
-        onImport={handleImport}
-      />
 
       {/* Search */}
       <View style={[styles.searchContainer, { backgroundColor: colors.cardBorder }]}>
@@ -204,9 +149,7 @@ export default function LibraryScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -215,17 +158,17 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 8,
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  backupBtn: {
+  settingsBtn: {
     width: 36,
     height: 36,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -237,9 +180,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     gap: 8,
   },
-  searchIcon: {
-    fontSize: 15,
-  },
+  searchIcon: { fontSize: 15 },
   searchInput: {
     flex: 1,
     fontSize: 14,
@@ -255,7 +196,6 @@ const styles = StyleSheet.create({
   },
   filterList: {
     paddingHorizontal: 8,
-    gap: 0,
   },
   filterTab: {
     paddingHorizontal: 12,

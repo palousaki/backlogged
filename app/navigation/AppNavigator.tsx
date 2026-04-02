@@ -1,10 +1,10 @@
-import { Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import LibraryScreen from '../screens/LibraryScreen'
+import SettingsScreen from '../screens/SettingsScreen'
 import SearchScreen from '../screens/SearchScreen'
 import GameDetailScreen from '../screens/GameDetailScreen'
 import { useColors, getTabBarStyle } from '../theme'
@@ -27,16 +27,9 @@ function LibraryNavigator() {
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
-      <LibraryStack.Screen
-        name="LibraryHome"
-        component={LibraryScreen}
-        options={{ headerShown: false }}
-      />
-      <LibraryStack.Screen
-        name="GameDetail"
-        component={GameDetailScreen}
-        options={{ title: 'Game Detail' }}
-      />
+      <LibraryStack.Screen name="LibraryHome" component={LibraryScreen} options={{ headerShown: false }} />
+      <LibraryStack.Screen name="GameDetail" component={GameDetailScreen} options={{ title: 'Game Detail' }} />
+      <LibraryStack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
     </LibraryStack.Navigator>
   )
 }
@@ -54,16 +47,8 @@ function SearchNavigator() {
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
-      <SearchStack.Screen
-        name="SearchHome"
-        component={SearchScreen}
-        options={{ headerShown: false }}
-      />
-      <SearchStack.Screen
-        name="GameDetail"
-        component={GameDetailScreen}
-        options={{ title: 'Game Detail' }}
-      />
+      <SearchStack.Screen name="SearchHome" component={SearchScreen} options={{ headerShown: false }} />
+      <SearchStack.Screen name="GameDetail" component={GameDetailScreen} options={{ title: 'Game Detail' }} />
     </SearchStack.Navigator>
   )
 }

@@ -1,4 +1,5 @@
 import { Platform, useColorScheme } from 'react-native'
+import { useSettingsStore } from './store/useSettingsStore'
 
 export type ColorPalette = {
   bg: string
@@ -58,7 +59,9 @@ const darkColors: ColorPalette = {
 }
 
 export function useColors(): ColorPalette {
-  const scheme = useColorScheme()
+  const systemScheme = useColorScheme()
+  const preference = useSettingsStore((s) => s.theme)
+  const scheme = preference === 'system' ? systemScheme : preference
   return scheme === 'dark' ? darkColors : lightColors
 }
 

@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
     gap: 12,
-    paddingTop: 8,
+    paddingTop: 0,
   },
   notFound: {
     flex: 1,

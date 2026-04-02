@@ -27,6 +27,7 @@ export type IGDBSearchResult = {
 export type LibraryStackParamList = {
   LibraryHome: undefined
   GameDetail: { gameId: number }
+  Settings: undefined
 }
 
 export type SearchStackParamList = {
