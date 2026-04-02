@@ -132,7 +132,7 @@ export default function LibraryScreen() {
             </Text>
             <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
               {games.length === 0
-                ? 'Go to Search to add games to your library'
+                ? 'Go to Discover to add games to your library or import an existing collection via Settings'
                 : 'Try a different filter or search term'}
             </Text>
           </View>

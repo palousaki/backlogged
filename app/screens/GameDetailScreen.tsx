@@ -7,8 +7,8 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native'
+import AppDialog from '../components/AppDialog'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Slider from '@react-native-community/slider'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
@@ -48,6 +48,7 @@ export default function GameDetailScreen() {
   const [rating, setRating] = useState(game?.rating ?? 0)
   const [completion, setCompletion] = useState(game?.completion ?? 0)
   const [notes, setNotes] = useState(game?.notes ?? '')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Keep header title in sync
   useLayoutEffect(() => {
@@ -129,21 +130,13 @@ export default function GameDetailScreen() {
   }
 
   const handleDelete = () => {
-    Alert.alert(
-      'Remove Game',
-      `Remove "${game.title}" from your library?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            removeGame(gameId)
-            navigation.goBack()
-          },
-        },
-      ]
-    )
+    setShowDeleteModal(true)
+  }
+
+  const confirmDelete = () => {
+    setShowDeleteModal(false)
+    removeGame(gameId)
+    navigation.goBack()
   }
 
   return (
@@ -283,6 +276,17 @@ export default function GameDetailScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <AppDialog
+        visible={showDeleteModal}
+        title="Remove Game"
+        message={`Remove "${game.title}" from your library?`}
+        onDismiss={() => setShowDeleteModal(false)}
+        buttons={[
+          { label: 'Cancel', onPress: () => setShowDeleteModal(false), variant: 'default' },
+          { label: 'Remove', onPress: confirmDelete, variant: 'destructive' },
+        ]}
+      />
     </SafeAreaView>
   )
 }

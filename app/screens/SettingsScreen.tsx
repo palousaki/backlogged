@@ -1,10 +1,15 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native'
+import { useState } from 'react'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useColors } from '../theme'
 import { useSettingsStore, ThemePreference } from '../store/useSettingsStore'
 import { useLibraryStore } from '../store/useLibraryStore'
 import { exportLibrary, pickAndParseLibrary } from '../services/libraryIO'
+import AppDialog from '../components/AppDialog'
+import type { LibraryStackParamList } from '../types'
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: 'contrast-outline' | 'sunny-outline' | 'moon-outline' }[] = [
   { value: 'system', label: 'System', icon: 'contrast-outline' },
@@ -12,24 +17,29 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: 'contrast-ou
   { value: 'dark',   label: 'Dark',   icon: 'moon-outline'     },
 ]
 
+type NavProp = NativeStackNavigationProp<LibraryStackParamList, 'Settings'>
+
 export default function SettingsScreen() {
+  const navigation = useNavigation<NavProp>()
   const colors = useColors()
   const theme = useSettingsStore((s) => s.theme)
   const setTheme = useSettingsStore((s) => s.setTheme)
   const games = useLibraryStore((s) => s.games)
   const mergeGames = useLibraryStore((s) => s.mergeGames)
 
+  const [dialog, setDialog] = useState<{ title: string; message: string; goToLibrary?: boolean } | null>(null)
+
   async function handleExport() {
     if (games.length === 0) {
-      Alert.alert('Nothing to export', 'Add some games to your library first.')
+      setDialog({ title: 'Nothing to export', message: 'Add some games to your library first.' })
       return
     }
     try {
       await exportLibrary(games)
-      if (Platform.OS === 'android') Alert.alert('Exported', 'Library saved successfully.')
+      setDialog({ title: 'Exported', message: 'Library saved successfully.' })
     } catch (e: unknown) {
       if (e instanceof Error && e.message === 'CANCELLED') return
-      Alert.alert('Export failed', e instanceof Error ? e.message : String(e))
+      setDialog({ title: 'Export failed', message: e instanceof Error ? e.message : String(e) })
     }
   }
 
@@ -42,10 +52,10 @@ export default function SettingsScreen() {
         added === 0
           ? 'All games already exist in your library.'
           : `Added ${added} game${added !== 1 ? 's' : ''}${skipped > 0 ? `, skipped ${skipped} duplicate${skipped !== 1 ? 's' : ''}` : ''}.`
-      Alert.alert('Import complete', msg)
+      setDialog({ title: 'Import complete', message: msg, goToLibrary: true })
     } catch (e: unknown) {
       if (e instanceof Error && e.message === 'CANCELLED') return
-      Alert.alert('Import failed', e instanceof Error ? e.message : 'Could not read the file.')
+      setDialog({ title: 'Import failed', message: e instanceof Error ? e.message : 'Could not read the file.' })
     }
   }
 
@@ -114,6 +124,17 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <AppDialog
+        visible={dialog !== null}
+        title={dialog?.title ?? ''}
+        message={dialog?.message ?? ''}
+        onDismiss={() => {
+          const goToLibrary = dialog?.goToLibrary
+          setDialog(null)
+          if (goToLibrary) navigation.navigate('LibraryHome')
+        }}
+      />
     </SafeAreaView>
   )
 }
