@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { Platform } from 'react-native'
 import { useLibraryStore } from '../store/useLibraryStore'
 import GameCard from '../components/GameCard'
-import { colors, TAB_BAR_STYLE } from '../theme'
+import { useColors, getTabBarStyle } from '../theme'
 import type { Game, GameStatus, LibraryStackParamList } from '../types'
 import { Ionicons } from '@expo/vector-icons'
 import { exportLibrary, pickAndParseLibrary } from '../services/libraryIO'
@@ -30,16 +30,9 @@ const FILTERS: { key: 'all' | GameStatus; label: string }[] = [
   { key: 'dropped',  label: 'Dropped'  },
 ]
 
-const FILTER_COLORS: Record<string, string> = {
-  all:      colors.accent,
-  playing:  colors.status.playing,
-  played:   colors.status.played,
-  unplayed: colors.status.unplayed,
-  dropped:  colors.status.dropped,
-}
-
 export default function LibraryScreen() {
   const navigation = useNavigation<NavProp>()
+  const colors = useColors()
   const games = useLibraryStore((s) => s.games)
   const mergeGames = useLibraryStore((s) => s.mergeGames)
 
@@ -81,9 +74,10 @@ export default function LibraryScreen() {
   }
 
   function closeBackup() {
-    navigation.getParent()?.setOptions({ tabBarStyle: TAB_BAR_STYLE })
+    navigation.getParent()?.setOptions({ tabBarStyle: getTabBarStyle(colors) })
     setBackupVisible(false)
   }
+
   const [activeFilter, setActiveFilter] = useState<'all' | GameStatus>('all')
   const [search, setSearch] = useState('')
 
@@ -107,12 +101,19 @@ export default function LibraryScreen() {
     return list.sort((a, b) => b.addedAt.localeCompare(a.addedAt))
   }, [games, activeFilter, search])
 
+  const filterColor = (key: string) =>
+    key === 'all' ? colors.accent : colors.status[key as GameStatus] ?? colors.accent
+
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.heading}>My Shelf</Text>
-        <TouchableOpacity onPress={openBackup} style={styles.backupBtn} activeOpacity={0.7}>
+        <Text style={[styles.heading, { color: colors.text }]}>My Shelf</Text>
+        <TouchableOpacity
+          onPress={openBackup}
+          style={[styles.backupBtn, { backgroundColor: colors.accentLight }]}
+          activeOpacity={0.7}
+        >
           <Ionicons name="archive-outline" size={22} color={colors.accent} />
         </TouchableOpacity>
       </View>
@@ -125,10 +126,10 @@ export default function LibraryScreen() {
       />
 
       {/* Search */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.cardBorder }]}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search library…"
           placeholderTextColor={colors.placeholder}
           value={search}
@@ -137,38 +138,39 @@ export default function LibraryScreen() {
         />
         {search.length > 0 && (
           <TouchableOpacity onPress={() => setSearch('')}>
-            <Text style={styles.clearBtn}>✕</Text>
+            <Text style={[styles.clearBtn, { color: colors.muted }]}>✕</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Filter tabs */}
-      <View style={styles.filterRow}>
-      <FlatList
-        horizontal
-        data={FILTERS}
-        keyExtractor={(i) => i.key}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterList}
-        renderItem={({ item }) => {
-          const active = activeFilter === item.key
-          return (
-            <TouchableOpacity
-              style={styles.filterTab}
-              onPress={() => setActiveFilter(item.key)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.filterLabel, active && styles.filterLabelActive]}>
-                {item.label}
-                <Text style={[styles.filterCount, active && styles.filterCountActive]}>
-                  {' '}{statusCounts[item.key]}
+      <View style={[styles.filterRow, { borderBottomColor: colors.border }]}>
+        <FlatList
+          horizontal
+          data={FILTERS}
+          keyExtractor={(i) => i.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+          renderItem={({ item }) => {
+            const active = activeFilter === item.key
+            const fc = filterColor(item.key)
+            return (
+              <TouchableOpacity
+                style={styles.filterTab}
+                onPress={() => setActiveFilter(item.key)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.filterLabel, { color: active ? fc : colors.placeholder }, active && styles.filterLabelActive]}>
+                  {item.label}
+                  <Text style={[styles.filterCount, { color: active ? fc : colors.placeholder }]}>
+                    {' '}{statusCounts[item.key]}
+                  </Text>
                 </Text>
-              </Text>
-              {active && <View style={styles.filterUnderline} />}
-            </TouchableOpacity>
-          )
-        }}
-      />
+                {active && <View style={[styles.filterUnderline, { backgroundColor: fc }]} />}
+              </TouchableOpacity>
+            )
+          }}
+        />
       </View>
 
       {/* Game list */}
@@ -180,10 +182,10 @@ export default function LibraryScreen() {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🎮</Text>
-            <Text style={styles.emptyTitle}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
               {games.length === 0 ? 'No games yet' : 'No matches'}
             </Text>
-            <Text style={styles.emptySubtitle}>
+            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>
               {games.length === 0
                 ? 'Go to Search to add games to your library'
                 : 'Try a different filter or search term'}
@@ -204,7 +206,6 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   header: {
     flexDirection: 'row',
@@ -218,13 +219,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     letterSpacing: -0.5,
-    color: colors.text,
   },
   backupBtn: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: colors.accentLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -237,7 +236,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     gap: 8,
-    backgroundColor: colors.cardBorder,
   },
   searchIcon: {
     fontSize: 15,
@@ -246,16 +244,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     paddingVertical: 0,
-    color: colors.text,
   },
   clearBtn: {
     fontSize: 13,
-    color: colors.muted,
     paddingHorizontal: 4,
   },
   filterRow: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     marginBottom: 8,
   },
   filterList: {
@@ -271,20 +266,13 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.placeholder,
   },
   filterLabelActive: {
-    color: colors.accent,
     fontWeight: '700',
   },
   filterCount: {
     fontSize: 12,
     fontWeight: '500',
-    color: colors.placeholder,
-  },
-  filterCountActive: {
-    color: colors.accent,
-    fontWeight: '600',
   },
   filterUnderline: {
     position: 'absolute',
@@ -293,7 +281,6 @@ const styles = StyleSheet.create({
     right: 12,
     height: 2,
     borderRadius: 1,
-    backgroundColor: colors.accent,
   },
   listContent: {
     paddingBottom: 20,
@@ -311,11 +298,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 8,
-    color: colors.text,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: colors.muted,
     textAlign: 'center',
     lineHeight: 20,
   },

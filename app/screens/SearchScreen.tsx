@@ -15,13 +15,14 @@ import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { searchGames } from '../services/igdb'
 import { useLibraryStore } from '../store/useLibraryStore'
-import { colors } from '../theme'
+import { useColors } from '../theme'
 import type { IGDBSearchResult, SearchStackParamList } from '../types'
 
 type NavProp = NativeStackNavigationProp<SearchStackParamList, 'SearchHome'>
 
 export default function SearchScreen() {
   const navigation = useNavigation<NavProp>()
+  const colors = useColors()
   const { hasGame } = useLibraryStore()
 
   const [query, setQuery] = useState('')
@@ -67,16 +68,15 @@ export default function SearchScreen() {
   )
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]}>
       <View style={styles.header}>
-        <Text style={styles.heading}>Discover</Text>
+        <Text style={[styles.heading, { color: colors.text }]}>Discover</Text>
       </View>
 
-      {/* Search input */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.cardBorder }]}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search for a game…"
           placeholderTextColor={colors.placeholder}
           value={query}
@@ -86,21 +86,20 @@ export default function SearchScreen() {
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => { setQuery(''); setResults([]); setHasSearched(false) }}>
-            <Text style={styles.clearBtn}>✕</Text>
+            <Text style={[styles.clearBtn, { color: colors.muted }]}>✕</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Results */}
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.statusText}>Searching…</Text>
+          <Text style={[styles.statusText, { color: colors.text }]}>Searching…</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorEmoji}>⚠️</Text>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text>
         </View>
       ) : (
         <FlatList
@@ -113,14 +112,14 @@ export default function SearchScreen() {
             hasSearched ? (
               <View style={styles.center}>
                 <Text style={styles.emptyEmoji}>🕹️</Text>
-                <Text style={styles.emptyTitle}>No results found</Text>
-                <Text style={styles.emptySubtitle}>Try a different title or spelling</Text>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>No results found</Text>
+                <Text style={[styles.emptySubtitle, { color: colors.muted }]}>Try a different title or spelling</Text>
               </View>
             ) : (
               <View style={styles.center}>
                 <Text style={styles.emptyEmoji}>🎮</Text>
-                <Text style={styles.emptyTitle}>Find your next game</Text>
-                <Text style={styles.emptySubtitle}>Type above to search the IGDB database</Text>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>Find your next game</Text>
+                <Text style={[styles.emptySubtitle, { color: colors.muted }]}>Type above to search the IGDB database</Text>
               </View>
             )
           }
@@ -128,45 +127,38 @@ export default function SearchScreen() {
             const inLibrary = hasGame(item.id)
             return (
               <TouchableOpacity
-                style={styles.resultRow}
+                style={[styles.resultRow, { backgroundColor: colors.card }]}
                 onPress={() => handleSelectGame(item)}
                 activeOpacity={0.8}
               >
-                {/* Cover */}
                 <View style={styles.coverContainer}>
                   {item.cover ? (
-                    <Image
-                      source={{ uri: item.cover }}
-                      style={styles.cover}
-                      resizeMode="cover"
-                    />
+                    <Image source={{ uri: item.cover }} style={styles.cover} resizeMode="cover" />
                   ) : (
-                    <View style={[styles.cover, styles.coverPlaceholder]}>
-                      <Text style={styles.coverPlaceholderText}>?</Text>
+                    <View style={[styles.cover, { backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' }]}>
+                      <Text style={{ fontSize: 24, color: colors.muted }}>?</Text>
                     </View>
                   )}
                 </View>
 
-                {/* Info */}
                 <View style={styles.resultInfo}>
-                  <Text style={styles.resultTitle} numberOfLines={2}>
+                  <Text style={[styles.resultTitle, { color: colors.text }]} numberOfLines={2}>
                     {item.title}
                   </Text>
-                  <Text style={styles.resultMeta}>
+                  <Text style={[styles.resultMeta, { color: colors.muted }]}>
                     {[item.genre, item.releaseYear > 0 ? String(item.releaseYear) : null]
                       .filter(Boolean)
                       .join(' · ')}
                   </Text>
                   {item.summary ? (
-                    <Text style={styles.resultSummary} numberOfLines={2}>
+                    <Text style={[styles.resultSummary, { color: colors.muted }]} numberOfLines={2}>
                       {item.summary}
                     </Text>
                   ) : null}
                 </View>
 
-                {/* In-library badge */}
                 {inLibrary && (
-                  <View style={styles.inLibraryBadge}>
+                  <View style={[styles.inLibraryBadge, { backgroundColor: colors.status.playing }]}>
                     <Text style={styles.inLibraryText}>✓</Text>
                   </View>
                 )}
@@ -180,7 +172,7 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
+  root: { flex: 1 },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
@@ -190,7 +182,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.5,
-    color: colors.text,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -201,18 +192,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     gap: 8,
-    backgroundColor: colors.cardBorder,
   },
   searchIcon: { fontSize: 16 },
   searchInput: {
     flex: 1,
     fontSize: 15,
     paddingVertical: 0,
-    color: colors.text,
   },
   clearBtn: {
     fontSize: 14,
-    color: colors.muted,
     paddingHorizontal: 4,
   },
   center: {
@@ -226,25 +214,21 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 15,
     fontWeight: '500',
-    color: colors.text,
   },
   errorEmoji: { fontSize: 40, marginBottom: 12 },
   errorText: {
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
-    color: colors.text,
   },
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 8,
-    color: colors.text,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: colors.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -258,7 +242,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     alignItems: 'flex-start',
-    backgroundColor: colors.card,
   },
   coverContainer: {
     width: 72,
@@ -267,15 +250,6 @@ const styles = StyleSheet.create({
   cover: {
     width: '100%',
     height: '100%',
-  },
-  coverPlaceholder: {
-    backgroundColor: colors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  coverPlaceholderText: {
-    fontSize: 24,
-    color: colors.muted,
   },
   resultInfo: {
     flex: 1,
@@ -286,21 +260,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     lineHeight: 18,
-    color: colors.text,
   },
   resultMeta: {
     fontSize: 12,
-    color: colors.muted,
     fontWeight: '500',
   },
   resultSummary: {
     fontSize: 12,
-    color: colors.muted,
     lineHeight: 17,
     marginTop: 2,
   },
   inLibraryBadge: {
-    backgroundColor: colors.status.playing,
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -309,7 +279,7 @@ const styles = StyleSheet.create({
     margin: 8,
   },
   inLibraryText: {
-    color: colors.card,
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
   },

@@ -7,7 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import LibraryScreen from '../screens/LibraryScreen'
 import SearchScreen from '../screens/SearchScreen'
 import GameDetailScreen from '../screens/GameDetailScreen'
-import { colors, TAB_BAR_STYLE } from '../theme'
+import { useColors, getTabBarStyle } from '../theme'
 
 import type { LibraryStackParamList, SearchStackParamList } from '../types'
 
@@ -15,6 +15,7 @@ const LibraryStack = createNativeStackNavigator<LibraryStackParamList>()
 const SearchStack  = createNativeStackNavigator<SearchStackParamList>()
 
 function LibraryNavigator() {
+  const colors = useColors()
   return (
     <LibraryStack.Navigator
       screenOptions={{
@@ -41,6 +42,7 @@ function LibraryNavigator() {
 }
 
 function SearchNavigator() {
+  const colors = useColors()
   return (
     <SearchStack.Navigator
       screenOptions={{
@@ -66,16 +68,18 @@ function SearchNavigator() {
   )
 }
 
-
 const Tab = createBottomTabNavigator()
 
 export default function AppNavigator() {
+  const colors = useColors()
+  const tabBarStyle = getTabBarStyle(colors)
+
   return (
     <NavigationContainer theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: colors.bg, card: colors.card, text: colors.text, border: colors.border, primary: colors.accent, notification: colors.accent } }}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: TAB_BAR_STYLE,
+          tabBarStyle,
           tabBarActiveTintColor: colors.accent,
           tabBarInactiveTintColor: colors.placeholder,
           tabBarLabelStyle: {
@@ -107,4 +111,3 @@ export default function AppNavigator() {
     </NavigationContainer>
   )
 }
-

@@ -6,7 +6,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import type { Game } from '../types'
-import { colors } from '../theme'
+import { useColors } from '../theme'
 import StatusBadge from './StatusBadge'
 import StarRating from './StarRating'
 import CompletionBar from './CompletionBar'
@@ -17,33 +17,33 @@ interface Props {
 }
 
 export default function GameCard({ game, onPress }: Props) {
+  const colors = useColors()
+
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
-      {/* Cover image */}
       <View style={styles.coverContainer}>
         {game.cover ? (
           <Image source={{ uri: game.cover }} style={styles.cover} resizeMode="cover" />
         ) : (
-          <View style={[styles.cover, styles.coverPlaceholder]}>
-            <Text style={styles.coverPlaceholderText}>?</Text>
+          <View style={[styles.cover, { backgroundColor: colors.text, alignItems: 'center', justifyContent: 'center' }]}>
+            <Text style={{ fontSize: 32, color: colors.muted }}>?</Text>
           </View>
         )}
       </View>
 
-      {/* Info */}
       <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={2}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
           {game.title}
         </Text>
 
         <View style={styles.metaRow}>
-          <Text style={styles.meta}>{game.genre}</Text>
+          <Text style={[styles.meta, { color: colors.muted }]}>{game.genre}</Text>
           {game.releaseYear > 0 && (
-            <Text style={styles.meta}> · {game.releaseYear}</Text>
+            <Text style={[styles.meta, { color: colors.muted }]}> · {game.releaseYear}</Text>
           )}
         </View>
 
@@ -70,9 +70,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 5,
     overflow: 'hidden',
-    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.cardBorder,
   },
   coverContainer: {
     width: 90,
@@ -81,15 +79,6 @@ const styles = StyleSheet.create({
   cover: {
     width: '100%',
     height: '100%',
-  },
-  coverPlaceholder: {
-    backgroundColor: colors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  coverPlaceholderText: {
-    fontSize: 32,
-    color: colors.muted,
   },
   info: {
     flex: 1,
@@ -101,14 +90,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     lineHeight: 20,
-    color: colors.text,
   },
   metaRow: {
     flexDirection: 'row',
   },
   meta: {
     fontSize: 12,
-    color: colors.muted,
     fontWeight: '500',
   },
   badgeRow: {

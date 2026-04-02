@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Modal, StyleSheet, TouchableWithoutFeedback } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { colors } from '../theme'
+import { useColors } from '../theme'
 
 type Props = {
   visible: boolean
@@ -10,36 +10,50 @@ type Props = {
 }
 
 export default function BackupModal({ visible, onClose, onExport, onImport }: Props) {
+  const colors = useColors()
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.sheet}>
-              <Text style={styles.title}>Backup</Text>
+            <View style={[styles.sheet, { backgroundColor: colors.card }]}>
+              <Text style={[styles.title, { color: colors.muted }]}>Backup</Text>
 
-              <TouchableOpacity style={styles.option} onPress={() => { onExport(); onClose() }} activeOpacity={0.7}>
-                <View style={styles.iconWrap}>
+              <TouchableOpacity
+                style={[styles.option, { backgroundColor: colors.cardBorder }]}
+                onPress={() => { onExport(); onClose() }}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconWrap, { backgroundColor: colors.accentLight }]}>
                   <Ionicons name="arrow-up-circle-outline" size={22} color={colors.accent} />
                 </View>
                 <View style={styles.optionText}>
-                  <Text style={styles.optionLabel}>Export library</Text>
-                  <Text style={styles.optionSub}>Save a backup file to your device</Text>
+                  <Text style={[styles.optionLabel, { color: colors.text }]}>Export library</Text>
+                  <Text style={[styles.optionSub, { color: colors.muted }]}>Save a backup file to your device</Text>
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.option} onPress={() => { onImport(); onClose() }} activeOpacity={0.7}>
-                <View style={styles.iconWrap}>
+              <TouchableOpacity
+                style={[styles.option, { backgroundColor: colors.cardBorder }]}
+                onPress={() => { onImport(); onClose() }}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconWrap, { backgroundColor: colors.accentLight }]}>
                   <Ionicons name="arrow-down-circle-outline" size={22} color={colors.accent} />
                 </View>
                 <View style={styles.optionText}>
-                  <Text style={styles.optionLabel}>Import library</Text>
-                  <Text style={styles.optionSub}>Restore from a backup file</Text>
+                  <Text style={[styles.optionLabel, { color: colors.text }]}>Import library</Text>
+                  <Text style={[styles.optionSub, { color: colors.muted }]}>Restore from a backup file</Text>
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.7}>
-                <Text style={styles.cancelText}>Cancel</Text>
+              <TouchableOpacity
+                style={[styles.cancelBtn, { backgroundColor: colors.cardBorder }]}
+                onPress={onClose}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.cancelText, { color: colors.muted }]}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
@@ -56,7 +70,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: colors.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -66,7 +79,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 4,
@@ -78,13 +90,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: colors.cardBorder,
   },
   iconWrap: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: colors.accentLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -94,22 +104,18 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
   },
   optionSub: {
     fontSize: 12,
-    color: colors.muted,
   },
   cancelBtn: {
     marginTop: 4,
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 12,
-    backgroundColor: colors.cardBorder,
   },
   cancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.muted,
   },
 })

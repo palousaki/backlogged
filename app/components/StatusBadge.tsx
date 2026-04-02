@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet } from 'react-native'
-import { colors } from '../theme'
+import { useColors } from '../theme'
 import type { GameStatus } from '../types'
 
-const STATUS_CONFIG: Record<GameStatus, { label: string; bg: string }> = {
-  playing:  { label: 'Playing',  bg: colors.status.playing  },
-  played:   { label: 'Played',   bg: colors.status.played   },
-  unplayed: { label: 'Unplayed', bg: colors.status.unplayed },
-  dropped:  { label: 'Dropped',  bg: colors.status.dropped  },
+const STATUS_LABELS: Record<GameStatus, string> = {
+  playing:  'Playing',
+  played:   'Played',
+  unplayed: 'Unplayed',
+  dropped:  'Dropped',
 }
 
 interface Props {
@@ -15,7 +15,8 @@ interface Props {
 }
 
 export default function StatusBadge({ status, small = false }: Props) {
-  const config = STATUS_CONFIG[status]
+  const colors = useColors()
+  const config = { label: STATUS_LABELS[status], bg: colors.status[status] }
 
   return (
     <View style={[styles.badge, { backgroundColor: config.bg }, small && styles.small]}>
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.3,
-    color: colors.card,
+    color: '#FFFFFF',
   },
   smallLabel: {
     fontSize: 10,
