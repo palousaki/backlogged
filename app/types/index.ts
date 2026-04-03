@@ -1,5 +1,11 @@
 export type GameStatus = 'unplayed' | 'playing' | 'played' | 'dropped'
 
+export type Platform = {
+  id: number
+  name: string
+  abbreviation: string
+}
+
 export type Game = {
   id: number
   title: string
@@ -12,6 +18,8 @@ export type Game = {
   completion: number  // 0–100 percent
   notes: string
   addedAt: string     // ISO date string
+  platforms: Platform[]
+  playedOn: number[]  // platform IDs the user has played on
 }
 
 export type IGDBSearchResult = {
@@ -21,6 +29,7 @@ export type IGDBSearchResult = {
   genre: string
   releaseYear: number
   summary: string
+  platforms: Platform[]
 }
 
 // Navigation param lists

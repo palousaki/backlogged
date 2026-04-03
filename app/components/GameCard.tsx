@@ -4,6 +4,7 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from 'react-native'
 import type { Game } from '../types'
 import { useColors } from '../theme'
@@ -49,6 +50,17 @@ export default function GameCard({ game, onPress }: Props) {
 
         <View style={styles.badgeRow}>
           <StatusBadge status={game.status} small />
+          {(game.playedOn?.length ?? 0) > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.platformScroll} contentContainerStyle={styles.platformChips}>
+              {(game.platforms ?? [])
+                .filter((p) => game.playedOn.includes(p.id))
+                .map((p) => (
+                  <View key={p.id} style={[styles.platformChip, { backgroundColor: colors.cardBorder }]}>
+                    <Text style={[styles.platformLabel, { color: colors.muted }]}>{p.abbreviation || p.name}</Text>
+                  </View>
+                ))}
+            </ScrollView>
+          )}
         </View>
 
         {game.rating > 0 && (
@@ -99,7 +111,29 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginTop: 2,
+  },
+  platformScroll: {
+    flexShrink: 1,
+  },
+  platformChips: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  platformChip: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+
+  platformLabel: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   ratingRow: {
     marginTop: 2,

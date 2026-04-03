@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  FlatList,
 } from 'react-native'
 import AppDialog from '../components/AppDialog'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -48,6 +49,7 @@ export default function GameDetailScreen() {
   const [rating, setRating] = useState(game?.rating ?? 0)
   const [completion, setCompletion] = useState(game?.completion ?? 0)
   const [notes, setNotes] = useState(game?.notes ?? '')
+  const [playedOn, setPlayedOn] = useState<number[]>(game?.playedOn ?? [])
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Keep header title in sync
@@ -62,6 +64,7 @@ export default function GameDetailScreen() {
       setRating(game.rating)
       setCompletion(game.completion)
       setNotes(game.notes)
+      setPlayedOn(game.playedOn ?? [])
     }
   }, [gameId])
 
@@ -124,8 +127,12 @@ export default function GameDetailScreen() {
     )
   }
 
+  const togglePlatform = (id: number) => {
+    setPlayedOn((prev) => prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id])
+  }
+
   const handleSave = () => {
-    updateGame(gameId, { status, rating, completion, notes })
+    updateGame(gameId, { status, rating, completion, notes, playedOn })
     navigation.goBack()
   }
 
@@ -216,40 +223,83 @@ export default function GameDetailScreen() {
           </View>
         </View>
 
-        {/* Rating */}
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Rating</Text>
-            {rating > 0 && (
-              <Text style={[styles.ratingValue, { color: colors.star }]}>{rating}/5</Text>
-            )}
+        {/* Played on */}
+        {status !== 'unplayed' && (game.platforms ?? []).length > 0 && (
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Played on</Text>
+              {playedOn.length > 0 && (
+                <TouchableOpacity onPress={() => setPlayedOn([])} activeOpacity={0.7}>
+                  <Text style={[styles.clearBtn, { color: colors.muted }]}>Clear</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <FlatList
+              data={game.platforms ?? []}
+              keyExtractor={(p) => String(p.id)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.platformList}
+              renderItem={({ item }) => {
+                const active = playedOn.includes(item.id)
+                return (
+                  <TouchableOpacity
+                    onPress={() => togglePlatform(item.id)}
+                    activeOpacity={0.7}
+                    style={[
+                      styles.platformChip,
+                      { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? colors.accentLight : colors.cardBorder },
+                    ]}
+                  >
+                    <Text style={[styles.platformLabel, { color: active ? colors.accent : colors.muted }]}>
+                      {item.abbreviation || item.name}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              }}
+            />
           </View>
-          <StarRating rating={rating} onRate={setRating} size={34} />
-          {rating === 0 && (
-            <Text style={[styles.hint, { color: colors.muted }]}>Tap a star to rate</Text>
-          )}
-        </View>
+        )}
+
+        {/* Rating */}
+        {status !== 'unplayed' && (
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Rating</Text>
+              {rating > 0 ? (
+                <TouchableOpacity onPress={() => setRating(0)} activeOpacity={0.7}>
+                  <Text style={[styles.clearBtn, { color: colors.muted }]}>Clear</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={[styles.hint, { color: colors.muted }]}>Tap a star to rate</Text>
+              )}
+            </View>
+            <StarRating rating={rating} onRate={setRating} size={34} />
+          </View>
+        )}
 
         {/* Completion */}
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Completion</Text>
-            <Text style={[styles.completionValue, { color: colors.accent }]}>
-              {Math.round(completion)}%
-            </Text>
+        {status !== 'unplayed' && (
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Completion</Text>
+              <Text style={[styles.completionValue, { color: colors.accent }]}>
+                {Math.round(completion)}%
+              </Text>
+            </View>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={100}
+              step={1}
+              value={completion}
+              onValueChange={setCompletion}
+              minimumTrackTintColor={colors.accent}
+              maximumTrackTintColor={colors.border}
+              thumbTintColor={colors.accent}
+            />
           </View>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={100}
-            step={1}
-            value={completion}
-            onValueChange={setCompletion}
-            minimumTrackTintColor={colors.accent}
-            maximumTrackTintColor={colors.border}
-            thumbTintColor={colors.accent}
-          />
-        </View>
+        )}
 
         {/* Notes */}
         <View style={[styles.section, { backgroundColor: colors.card }]}>
@@ -374,13 +424,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-  ratingValue: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
   hint: {
     fontSize: 12,
-    marginTop: -4,
+  },
+  clearBtn: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   completionValue: {
     fontSize: 16,
@@ -413,6 +462,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  platformList: {
+    gap: 8,
+  },
+  platformChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1.5,
+  },
+  platformLabel: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   deleteBtn: {
     borderRadius: 14,

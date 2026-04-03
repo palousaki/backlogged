@@ -5,7 +5,7 @@ import type { Game, GameStatus } from '../types'
 
 interface LibraryState {
   games: Game[]
-  addGame: (game: Omit<Game, 'status' | 'rating' | 'completion' | 'notes' | 'addedAt'>) => void
+  addGame: (game: Omit<Game, 'status' | 'rating' | 'completion' | 'notes' | 'addedAt' | 'playedOn'>) => void
   updateGame: (id: number, updates: Partial<Game>) => void
   removeGame: (id: number) => void
   getGame: (id: number) => Game | undefined
@@ -28,6 +28,8 @@ export const useLibraryStore = create<LibraryState>()(
           completion: 0,
           notes: '',
           addedAt: new Date().toISOString(),
+          platforms: partial.platforms ?? [],
+          playedOn: [],
         }
 
         set((state) => ({ games: [...state.games, newGame] }))

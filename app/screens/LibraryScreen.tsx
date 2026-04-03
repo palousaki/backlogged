@@ -11,7 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useLibraryStore } from '../store/useLibraryStore'
+import { useSettingsStore } from '../store/useSettingsStore'
 import GameCard from '../components/GameCard'
+import GameGridCard from '../components/GameGridCard'
 import { useColors } from '../theme'
 import { Ionicons } from '@expo/vector-icons'
 import type { Game, GameStatus, LibraryStackParamList } from '../types'
@@ -33,6 +35,10 @@ export default function LibraryScreen() {
 
   const [activeFilter, setActiveFilter] = useState<'all' | GameStatus>('all')
   const [search, setSearch] = useState('')
+  const sortAlpha = useSettingsStore((s) => s.sortAlpha)
+  const setSortAlpha = useSettingsStore((s) => s.setSortAlpha)
+  const gridView = useSettingsStore((s) => s.gridView)
+  const setGridView = useSettingsStore((s) => s.setGridView)
 
   const statusCounts = useMemo(() => ({
     all:      games.length,
@@ -51,8 +57,10 @@ export default function LibraryScreen() {
       const q = search.trim().toLowerCase()
       list = list.filter((g) => g.title.toLowerCase().includes(q))
     }
-    return list.sort((a, b) => b.addedAt.localeCompare(a.addedAt))
-  }, [games, activeFilter, search])
+    return sortAlpha
+      ? list.sort((a, b) => a.title.localeCompare(b.title))
+      : list.sort((a, b) => b.addedAt.localeCompare(a.addedAt))
+  }, [games, activeFilter, search, sortAlpha])
 
   const filterColor = (key: string) =>
     key === 'all' ? colors.accent : colors.status[key as GameStatus] ?? colors.accent
@@ -61,13 +69,30 @@ export default function LibraryScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]}>
       <View style={styles.header}>
         <Text style={[styles.heading, { color: colors.text }]}>My Shelf</Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Settings')}
-          style={[styles.settingsBtn, { backgroundColor: colors.accentLight }]}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="settings-outline" size={20} color={colors.accent} />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            onPress={() => setSortAlpha(!sortAlpha)}
+            style={[styles.sortBtn, { backgroundColor: colors.accentLight }]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="swap-vertical-outline" size={14} color={colors.accent} />
+            <Ionicons name={sortAlpha ? 'time-outline' : 'text-outline'} size={16} color={colors.accent} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setGridView(!gridView)}
+            style={[styles.settingsBtn, { backgroundColor: colors.accentLight }]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={gridView ? 'list-outline' : 'grid-outline'} size={20} color={colors.accent} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings')}
+            style={[styles.settingsBtn, { backgroundColor: colors.accentLight }]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="settings-outline" size={20} color={colors.accent} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search */}
@@ -120,9 +145,12 @@ export default function LibraryScreen() {
 
       {/* Game list */}
       <FlatList
+        key={gridView ? 'grid' : 'list'}
         data={filtered}
         keyExtractor={(g) => String(g.id)}
-        contentContainerStyle={styles.listContent}
+        numColumns={gridView ? 2 : 1}
+        contentContainerStyle={[styles.listContent, gridView && styles.gridContent]}
+        columnWrapperStyle={gridView ? styles.gridRow : undefined}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyState}>
@@ -137,12 +165,19 @@ export default function LibraryScreen() {
             </Text>
           </View>
         }
-        renderItem={({ item }: { item: Game }) => (
-          <GameCard
-            game={item}
-            onPress={() => navigation.navigate('GameDetail', { gameId: item.id })}
-          />
-        )}
+        renderItem={({ item }: { item: Game }) =>
+          gridView ? (
+            <GameGridCard
+              game={item}
+              onPress={() => navigation.navigate('GameDetail', { gameId: item.id })}
+            />
+          ) : (
+            <GameCard
+              game={item}
+              onPress={() => navigation.navigate('GameDetail', { gameId: item.id })}
+            />
+          )
+        }
       />
     </SafeAreaView>
   )
@@ -157,6 +192,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 8,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  sortBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    height: 36,
+    paddingHorizontal: 10,
+    borderRadius: 10,
   },
   settingsBtn: {
     width: 36,
@@ -224,6 +271,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  gridContent: {
+    paddingHorizontal: 10,
+  },
+  gridRow: {
+    justifyContent: 'space-between',
   },
   emptyState: {
     alignItems: 'center',

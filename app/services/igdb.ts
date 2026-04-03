@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { IGDB_CLIENT_ID, IGDB_CLIENT_SECRET } from '@env'
-import type { IGDBSearchResult } from '../types'
+import type { IGDBSearchResult, Platform } from '../types'
 
 const IGDB_BASE = 'https://api.igdb.com/v4'
 const TWITCH_TOKEN_URL = 'https://id.twitch.tv/oauth2/token'
@@ -90,7 +90,7 @@ export async function searchGames(query: string): Promise<IGDBSearchResult[]> {
 
   const games = await igdbPost(
     '/games',
-    `fields id,name,cover,genres.name,first_release_date,summary;
+    `fields id,name,cover,genres.name,first_release_date,summary,platforms.name,platforms.abbreviation;
      search "${safeQuery}";
      limit 20;
      where version_parent = null;`
@@ -127,5 +127,12 @@ export async function searchGames(query: string): Promise<IGDBSearchResult[]> {
       ? new Date(game.first_release_date * 1000).getFullYear()
       : 0,
     summary: game.summary ?? '',
+    platforms: Array.isArray(game.platforms)
+      ? game.platforms.map((p: any): Platform => ({
+          id: p.id,
+          name: p.name ?? '',
+          abbreviation: p.abbreviation ?? p.name ?? '',
+        }))
+      : [],
   }))
 }
